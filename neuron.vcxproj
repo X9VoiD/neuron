@@ -103,7 +103,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug OCDMode|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ClangTidyChecks>performance-*,misc-*,modernize-use-nullptr</ClangTidyChecks>
+    <ClangTidyChecks>performance-*,misc-*,modernize-*,-modernize-use-trailing-*,bugprone-*,cppcoreguidelines-*</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -112,7 +112,7 @@
     <LinkIncremental>true</LinkIncremental>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>performance-*,misc-*,modernize-use-nullptr</ClangTidyChecks>
+    <ClangTidyChecks>performance-*,misc-*,modernize-*,-modernize-use-trailing-*,bugprone-*,cppcoreguidelines-*</ClangTidyChecks>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
