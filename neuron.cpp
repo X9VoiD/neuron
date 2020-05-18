@@ -160,6 +160,10 @@ public:
 		}
 	}
 
+	void shutdown() {
+		running = 0;
+	}
+
 private:
 
 	struct ThreadState;
