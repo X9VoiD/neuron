@@ -153,6 +153,8 @@ public:
 			child = std::make_unique<std::thread>(&ThreadPool::threadFunc, this, std::move(tstate));
 			++i;
 		}
+	}
+	~ThreadPool() {
 		for (auto& child : pool) {
 			child->join();
 		}
