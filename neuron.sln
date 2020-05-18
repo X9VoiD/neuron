@@ -13,12 +13,14 @@ Global
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		ReleaseOPT|x64 = ReleaseOPT|x64
+		ReleaseOPT|x86 = ReleaseOPT|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug OCDMode|x64.ActiveCfg = Debug OCDMode|x64
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug OCDMode|x64.Build.0 = Debug OCDMode|x64
-		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug OCDMode|x86.ActiveCfg = Debug OCDMode|Win32
-		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug OCDMode|x86.Build.0 = Debug OCDMode|Win32
+		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug OCDMode|x86.ActiveCfg = Debug OCDMode|x64
+		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug OCDMode|x86.Build.0 = Debug OCDMode|x64
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug|x64.ActiveCfg = Debug|x64
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug|x64.Build.0 = Debug|x64
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Debug|x86.ActiveCfg = Debug|Win32
@@ -27,6 +29,10 @@ Global
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Release|x64.Build.0 = Release|x64
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Release|x86.ActiveCfg = Release|Win32
 		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.Release|x86.Build.0 = Release|Win32
+		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.ReleaseOPT|x64.ActiveCfg = ReleaseOPT|x64
+		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.ReleaseOPT|x64.Build.0 = ReleaseOPT|x64
+		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.ReleaseOPT|x86.ActiveCfg = ReleaseOPT|Win32
+		{9DA16565-AD0E-41FB-AE6C-F1591DDA1622}.ReleaseOPT|x86.Build.0 = ReleaseOPT|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
