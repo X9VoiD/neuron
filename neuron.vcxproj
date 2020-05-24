@@ -149,7 +149,7 @@
     <LinkIncremental>true</LinkIncremental>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <ClangTidyChecks>performance-*,misc-*,modernize-*,-modernize-use-trailing-*,bugprone-*,cppcoreguidelines-*,-misc-non-private-*</ClangTidyChecks>
+    <ClangTidyChecks>performance-*,misc-*,modernize-*,-modernize-use-trailing-*,bugprone-*,cppcoreguidelines-*,-misc-non-private-*,-clang-diagnostic-pragma-once-outside-header</ClangTidyChecks>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

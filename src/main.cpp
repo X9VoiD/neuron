@@ -1,11 +1,5 @@
 #include <iostream>
-#include <exception>
-#include <algorithm>
-#include <string>
-#include <sstream>
 #include <random>
-#include <condition_variable>
-#include <chrono>
 #include "Neuron.h"
 #include "ThreadPool.h"
 constexpr auto BRAINSIZE = 10;
@@ -15,19 +9,22 @@ constexpr auto BRAINSIZE = 10;
 		TODO: HIGH PRIO: Neuron Spatial Awareness
 */
 
-class Brain {
+class Brain
+{
 public:
 	// TODO
-	Brain() {
+	Brain()
+	{
 		worker = std::make_unique<ThreadPool>();
 		constexpr float brain_world_center = 2.0;
 		constexpr int mem_relax = 5;
 		neurons.reserve((BRAINSIZE ^ 3) / mem_relax);
-		distribution = std::uniform_real_distribution<float>( -(static_cast<float>(BRAINSIZE) / brain_world_center),
-			                                                   (static_cast<float>(BRAINSIZE) / brain_world_center) );
+		distribution = std::uniform_real_distribution<float>(-(static_cast<float>(BRAINSIZE) / brain_world_center),
+			(static_cast<float>(BRAINSIZE) / brain_world_center));
 		rng = std::mt19937(seed());
 	}
-	inline float gen_rand_position() {
+	inline float gen_rand_position()
+	{
 		return distribution(rng);
 	}
 
@@ -39,44 +36,60 @@ private:
 	std::unique_ptr<ThreadPool> worker;
 
 public:
-	void generate_neuron() {
+	void generate_neuron()
+	{
 		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position());
 		// TODO: Implement neuron spatial awareness.
 	}
-	std::vector<Neuron>& get_neurons() {
+
+	std::vector<Neuron>& get_neurons()
+	{
 		return neurons;
 	}
-	void start() {
+
+	void start()
+	{
 		// TODO: Tickle a random Neuron
 		worker->get_barrier()->sync();
 	}
 
-	void shutdown() {
+	void shutdown()
+	{
 		worker->shutdown();
 		worker->join();
 	}
 };
 
-int main() {
-	try {
+int main()
+{
+	try
+	{
 		constexpr auto test_rand = 10000;
 
 		auto brain = std::make_unique<Brain>();
 		std::cout << "Alpha Boot Success.\n";
 
 		// Start seeding the Brain with random Neurons
-		for (int i = 0; i != test_rand; i++) {
+		for (int i = 0; i != test_rand; i++)
+		{
 			brain->generate_neuron();
 		}
+
 		std::cout << "Brain Test Run\n";
 		std::cout << "Press Enter to run simulation\n";
+
 		std::cin.get();
 		brain->start();
+
 		std::cout << "Processing... Press Enter to shutdown the <Brain>";
+
 		std::cin.get();
+
 		std::cout << "Attempting Brain Shutdown.\n";
+
 		brain->shutdown();
+
 		std::cout << "Brain Shutdown Successful.\n";
 	}
-	catch (...) { }
+	catch (...) {}
 }
