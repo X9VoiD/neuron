@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <string>
+#include <sstream>
 #include <atomic>
 #include <unordered_map>
 #include <random>
@@ -18,8 +20,13 @@ constexpr auto BRAINSIZE = 10;
 constexpr auto THREADS = 4;
 
 /*
-		TODO: Axon Growth; Dendrite Signal Convergence; Brain; Queue
+		TODO: Axon Growth; Dendrite Signal Convergence; Brain
+		TODO: HIGH PRIO: Neuron Spatial Awareness, Synchronize ThreadPool Init to MainThread
 */
+
+//////////////////
+// Neuron Start //
+//////////////////
 
 class Neuron {
 private:
@@ -48,6 +55,12 @@ public:
 		axon = std::make_shared<Axon>(state);
 	}
 
+	~Neuron() = default;
+	Neuron& operator=(const Neuron&) = delete;
+	Neuron(const Neuron&) = delete;
+	Neuron& operator=(Neuron&&) = default;
+	Neuron(Neuron&&) = default;
+
 	const std::shared_ptr<NeuronState>& get_state() {
 		return state;
 	}
@@ -68,6 +81,12 @@ private:
 			neuron_state = pneuron_state;
 			id = this;
 		}
+
+		~Axon() = default;
+		Axon& operator=(const Axon&) = delete;
+		Axon(const Axon&) = delete;
+		Axon& operator=(Axon&&) = delete;
+		Axon(Axon&&) = delete;
 
 		void send_pulse() {
 			for (auto const& synapse : targets) {
@@ -101,6 +120,13 @@ private:
 		CollectiveDendrite(const std::shared_ptr<NeuronState>& pneuron_state) {
 			neuron_state = pneuron_state;
 		}
+
+		~CollectiveDendrite() = default;
+		CollectiveDendrite& operator=(const CollectiveDendrite&) = delete;
+		CollectiveDendrite(const CollectiveDendrite&) = delete;
+		CollectiveDendrite& operator=(CollectiveDendrite&&) = delete;
+		CollectiveDendrite(CollectiveDendrite&&) = delete;
+
 		void form_link(Axon* axon, int length) {
 			auto formed_link = std::make_unique<Link>();
 			formed_link->length = length;
@@ -138,6 +164,10 @@ public:
 	inline const std::shared_ptr<Axon>& get_axon() { return axon; }
 };
 
+////////////////
+// Neuron End //
+////////////////
+
 class ThreadPool {
 
 public:
@@ -145,23 +175,41 @@ public:
 	ThreadPool() {
 		int i = 0;
 		main_barrier = std::make_shared<Barrier>(THREADS);
+		pool_barrier = std::make_unique<Barrier>(THREADS + 1);
 		queue_array.reserve(THREADS);
 		for (auto& child : pool) {
 			std::shared_ptr<Barrier> ppbarrier = main_barrier;
-			std::unique_ptr<ThreadState> tstate = std::make_unique<ThreadState>(ppbarrier, i);
-			queue_array.at(i) = &(*tstate);
+			std::shared_ptr<ThreadState> tstate = std::make_shared<ThreadState>(ppbarrier, i);
+			queue_array.push_back(tstate);
 			child = std::make_unique<std::thread>(&ThreadPool::threadFunc, this, std::move(tstate));
 			++i;
 		}
 	}
 	~ThreadPool() {
+		try {
+			if (running) {
+				for (auto& child : pool) {
+					child->join();
+				}
+			}
+		}
+		catch (...) {};
+	}
+
+	ThreadPool(const ThreadPool&) = delete;
+	ThreadPool(ThreadPool&&) = delete;
+	ThreadPool& operator=(const ThreadPool&) = delete;
+	ThreadPool& operator=(ThreadPool&&) = delete;
+
+	void shutdown() {
+		main_barrier->invalidate();
+		running = 0;
+	}
+
+	void join() {
 		for (auto& child : pool) {
 			child->join();
 		}
-	}
-
-	void shutdown() {
-		running = 0;
 	}
 
 private:
@@ -169,42 +217,57 @@ private:
 	struct ThreadState;
 	std::array<std::unique_ptr<std::thread>, THREADS> pool;
 	std::atomic<int> running = 1;
-	std::vector<ThreadState*> queue_array;
+	std::vector<std::shared_ptr<ThreadState>> queue_array;
 
+	// START Barrier
 	class Barrier {
 	private:
-		int count;
+		std::atomic<int> count;
 		int num_threads;
 		int left;
 		std::mutex mtx;
 		std::condition_variable cv;
+		std::atomic<bool> bypass = false;
 	public:
 		Barrier(int pnum_threads) {
 			count = pnum_threads;
 			num_threads = pnum_threads;
 			left = 0;
 		}
+
+		~Barrier() = default;
+		Barrier& operator=(const Barrier&) = delete;
+		Barrier(const Barrier&) = delete;
+		Barrier& operator=(Barrier&&) = delete;
+		Barrier(Barrier&&) = delete;
+
 		void sync() {
 			std::unique_lock<std::mutex> lck(mtx);
-			if ((--count == 0) && (left == (num_threads - 1))) {
+			--count;
+			if (count == 0) {
 				cv.notify_all();
 				count = num_threads;
-				left = 0;
 			}
 			else {
-				cv.wait(lck, [this]() { return count == 0; });
+				if (!bypass) { cv.wait(lck); }
+				else if (bypass) { cv.notify_all(); }
 			}
-			left++;
+		}
+
+		void invalidate() {
+			bypass = true;
+			cv.notify_all();
 		}
 	};
+	// END Barrier
 
+	std::unique_ptr<Barrier> pool_barrier;
 	std::shared_ptr<Barrier> main_barrier;
 
+	// START ThreadState
 	struct ThreadState {
 	public:
 		std::shared_ptr<Barrier> barrier;
-		bool waiting = false;
-		bool leaved = false;
 		int id;
 		int tick_observer;
 		std::queue<std::function<void()>> c1;
@@ -238,19 +301,26 @@ private:
 			else                       { tick_observer = 1; }
 		}
 	};
+	// END ThreadState
+
+public:
 
 	void enqueue(std::function<void()>& work) {
-		auto t = std::min_element(queue_array.begin(), queue_array.end(), [] (ThreadState *a, ThreadState *b) {
+		auto t = std::min_element(queue_array.begin(), queue_array.end(), [] (const std::shared_ptr<ThreadState>& a, const std::shared_ptr<ThreadState>& b) {
 			return a->get_future_command_array().size() < b->get_future_command_array().size();
 		});
 		std::unique_lock<std::mutex> lck((*t)->tqueue_lock);
 		(*t)->get_future_command_array().push(work);
 	}
 
+	Barrier* get_barrier() {
+		return &(*pool_barrier);
+	}
+
 private:
 
-	void threadFunc(const std::unique_ptr<ThreadState>& state) {
-		// TODO: Implement
+	void threadFunc(const std::shared_ptr<ThreadState>& state) {
+		pool_barrier->sync();
 		while (running == 1) {
 			while (!(state->get_command_array().empty())) {
 				state->get_command_array().front()();
@@ -266,6 +336,7 @@ class Brain {
 public:
 	// TODO
 	Brain() {
+		worker = std::make_unique<ThreadPool>();
 		constexpr float brain_world_center = 2.0;
 		constexpr int mem_relax = 5;
 		neurons.reserve((BRAINSIZE ^ 3) / mem_relax);
@@ -282,24 +353,47 @@ private:
 	std::mt19937 rng;
 	std::vector<Neuron> neurons;
 	std::uniform_real_distribution<float> distribution;
+	std::unique_ptr<ThreadPool> worker;
 
 public:
 	void generate_neuron() {
 		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position());
+		// TODO: Implement neuron spatial awareness.
 	}
-	std::vector<Neuron>* get_neurons() {
-		return &neurons;
+	std::vector<Neuron>& get_neurons() {
+		return neurons;
+	}
+	void start() {
+		// TODO: Tickle a random Neuron
+		worker->get_barrier()->sync();
+	}
+
+	void shutdown() {
+		worker->shutdown();
+		worker->join();
 	}
 };
 
 int main() {
 	try {
 		constexpr auto test_rand = 10000;
+
 		auto brain = std::make_unique<Brain>();
 		std::cout << "Alpha Boot Success.\n";
+
+		// Start seeding the Brain with random Neurons
 		for (int i = 0; i != test_rand; i++) {
 			brain->generate_neuron();
 		}
+		std::cout << "Brain Test Run\n";
+		std::cout << "Press Enter to run simulation\n";
+		std::cin.get();
+		brain->start();
+		std::cout << "Processing... Press Enter to shutdown the <Brain>";
+		std::cin.get();
+		std::cout << "Attempting Brain Shutdown.\n";
+		brain->shutdown();
+		std::cout << "Brain Shutdown Successful.\n";
 	}
-	catch(...) { }
+	catch (...) { }
 }
