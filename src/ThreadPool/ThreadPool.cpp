@@ -15,7 +15,8 @@ ThreadPool::ThreadPool()
 	main_barrier = std::make_shared<Barrier>(THREADS);
 	pool_barrier = std::make_unique<Barrier>(THREADS + 1);
 	queue_array.reserve(THREADS);
-	for (auto& child : pool) {
+	for (auto& child : pool)
+	{
 		std::shared_ptr<Barrier> ppbarrier = main_barrier;
 		std::shared_ptr<ThreadState> tstate = std::make_shared<ThreadState>(ppbarrier, i);
 		queue_array.push_back(tstate);

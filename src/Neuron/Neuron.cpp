@@ -1,14 +1,5 @@
-#include <array>
 #include "../Neuron.h"
 constexpr auto ACTIVATIONBIAS = 0;
-
-struct Neuron::NeuronState
-{
-	bool hot;
-	std::array<float, 3> position;
-	int activationbias;
-	int nconnections;
-};
 
 
 
@@ -49,11 +40,6 @@ inline const std::shared_ptr<Neuron::Axon>& Neuron::get_axon() { return axon; }
 // Axon
 
 
-
-struct Neuron::Axon::AxonTarget
-{
-	CollectiveDendrite* target;
-};
 
 Neuron::Axon::Axon(const std::shared_ptr<NeuronState>& pneuron_state)
 {
@@ -110,5 +96,5 @@ void Neuron::CollectiveDendrite::receive_pulse(Axon* pulse_sender)
 
 void Neuron::CollectiveDendrite::update()
 {
-	// TODO: IMPLEMENT /////////////////////////////
+	// TODO: Implement
 }

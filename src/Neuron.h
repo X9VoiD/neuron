@@ -2,9 +2,15 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <array>
 
 class Neuron {
-	struct NeuronState;
+	struct NeuronState {
+		bool hot;
+		std::array<float, 3> position;
+		int activationbias;
+		int nconnections;
+	};
 
 	class Axon;
 	class CollectiveDendrite;
@@ -44,7 +50,9 @@ public:
 	void update();
 
 private:
-	struct AxonTarget;
+	struct AxonTarget {
+		CollectiveDendrite* target;
+	};
 	Axon* id;
 	std::vector<AxonTarget> targets;
 	std::vector<AxonTarget> candidates;
