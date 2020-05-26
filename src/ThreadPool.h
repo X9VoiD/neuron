@@ -6,7 +6,6 @@
 #include <thread>
 #include <mutex>
 #include <functional>
-constexpr auto THREADS = 4;
 
 class ThreadPool
 {
@@ -14,7 +13,7 @@ class ThreadPool
 	class Barrier;
 	std::atomic<int> running = 1;
 
-	std::array<std::unique_ptr<std::thread>, THREADS> pool;
+	std::vector<std::unique_ptr<std::thread>> pool;
 	std::vector<std::shared_ptr<ThreadState>> queue_array;
 
 	std::unique_ptr<Barrier> pool_barrier;

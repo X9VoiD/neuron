@@ -1,5 +1,7 @@
 #include "../ThreadPool.h"
 
+const unsigned int THREADS = std::thread::hardware_concurrency();
+
 
 
 // ThreadPool
@@ -9,6 +11,7 @@
 ThreadPool::ThreadPool()
 {
 	int i = 0;
+	pool.resize(THREADS);
 	main_barrier = std::make_shared<Barrier>(THREADS);
 	pool_barrier = std::make_unique<Barrier>(THREADS + 1);
 	queue_array.reserve(THREADS);
