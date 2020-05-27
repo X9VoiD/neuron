@@ -33,7 +33,7 @@ public:
 	void shutdown();
 	void join();
 
-	void enqueue(std::function<void()>&);
+	void enqueue(std::function<void()>);
 	Barrier* get_barrier();
 };
 

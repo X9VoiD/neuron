@@ -38,7 +38,7 @@ private:
 public:
 	void generate_neuron()
 	{
-		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position());
+		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position(), &(*worker));
 		// TODO: Implement neuron spatial awareness.
 	}
 

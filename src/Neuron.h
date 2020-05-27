@@ -4,12 +4,23 @@
 #include <unordered_map>
 #include <array>
 
-class Neuron {
-	struct NeuronState {
-		bool hot;
+#include "ThreadPool.h"
+
+using pulse_distance = unsigned int;
+using axon_distance = unsigned int;
+
+class Neuron
+{
+	struct NeuronState
+	{
+		NeuronState(float, float, float, float, ThreadPool*);
+
+		bool hot = false;
+		float polarization = 0.0f;
 		std::array<float, 3> position;
-		int activationbias;
-		int nconnections;
+		float pulse_resistance;
+		unsigned int nconnections;
+		ThreadPool* worker;
 	};
 
 	class Axon;
@@ -20,7 +31,7 @@ class Neuron {
 	std::shared_ptr<NeuronState> state;
 
 public:
-	Neuron(float, float, float);
+	Neuron(float, float, float, ThreadPool*);
 
 	~Neuron() = default;
 	Neuron& operator=(const Neuron&) = delete;
@@ -36,7 +47,8 @@ public:
 
 
 
-class Neuron::Axon {
+class Neuron::Axon
+{
 public:
 	Axon(const std::shared_ptr<NeuronState>&);
 
@@ -46,11 +58,13 @@ public:
 	Axon& operator=(Axon&&) = delete;
 	Axon(Axon&&) = delete;
 
+	inline const std::shared_ptr<NeuronState>& get_state();
 	void send_pulse();
 	void update();
 
 private:
-	struct AxonTarget {
+	struct AxonTarget
+	{
 		CollectiveDendrite* target;
 	};
 	Axon* id;
@@ -61,7 +75,8 @@ private:
 
 
 
-class Neuron::CollectiveDendrite {
+class Neuron::CollectiveDendrite
+{
 public:
 	CollectiveDendrite(const std::shared_ptr<NeuronState>&);
 
@@ -76,8 +91,19 @@ public:
 	void receive_pulse(Axon*);
 	void update();
 
+	inline const std::shared_ptr<NeuronState>& get_state();
+
 private:
-	struct Link;
+	struct Link
+	{
+		std::vector<pulse_distance> pulses;
+		int length = 0;
+		float weight = 1.0f;
+	};
 	std::unordered_map<Axon*, std::unique_ptr<Link>> links;
 	std::shared_ptr<NeuronState> neuron_state;
+
+	void travel_pulses();
+	void collect_pulse(Axon*, const std::unique_ptr<Link>&);
+	void update_link_strength(Axon*, bool);
 };

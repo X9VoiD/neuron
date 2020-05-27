@@ -54,7 +54,7 @@ void ThreadPool::join()
 	}
 }
 
-void ThreadPool::enqueue(std::function<void()>& work)
+void ThreadPool::enqueue(std::function<void()> work)
 {
 	auto t = std::min_element(queue_array.begin(), queue_array.end(),
 		[](const std::shared_ptr<ThreadState>& a, const std::shared_ptr<ThreadState>& b)
