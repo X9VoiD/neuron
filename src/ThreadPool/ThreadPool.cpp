@@ -1,4 +1,4 @@
-#include "../ThreadPool.h"
+#include "../../include/ThreadPool.h"
 
 const unsigned int THREADS = std::thread::hardware_concurrency();
 

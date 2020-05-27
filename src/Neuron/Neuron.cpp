@@ -1,4 +1,4 @@
-#include "../Neuron.h"
+#include "../../include/Neuron.h"
 constexpr auto PULSE_RESISTANCE = 4.0f;
 
 

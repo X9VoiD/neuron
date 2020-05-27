@@ -1,7 +1,7 @@
 #include <iostream>
 #include <random>
-#include "Neuron.h"
-#include "ThreadPool.h"
+#include "../include/Neuron.h"
+#include "../include/ThreadPool.h"
 constexpr auto BRAINSIZE = 10;
 
 /*
