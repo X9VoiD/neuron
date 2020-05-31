@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include "../include/debug_tool/dNeuron.h"
 #include "../include/Neuron.h"
 #include "../include/ThreadPool.h"
 constexpr auto BRAINSIZE = 10;
@@ -18,7 +19,7 @@ public:
 		worker = std::make_unique<ThreadPool>();
 		constexpr float brain_world_center = 2.0;
 		constexpr int mem_relax = 5;
-		neurons.reserve((BRAINSIZE ^ 3) / mem_relax);
+		neurons.reserve((pow(BRAINSIZE, 3)) / mem_relax);
 		distribution = std::uniform_real_distribution<float>(-(static_cast<float>(BRAINSIZE) / brain_world_center),
 			(static_cast<float>(BRAINSIZE) / brain_world_center));
 		rng = std::mt19937(seed());
@@ -42,6 +43,11 @@ public:
 		// TODO: Implement neuron spatial awareness.
 	}
 
+	void generate_neuron(float x, float y, float z)
+	{
+		neurons.emplace_back(x, y, z, &(*worker));
+	}
+
 	std::vector<Neuron>& get_neurons()
 	{
 		return neurons;
@@ -60,14 +66,15 @@ public:
 	}
 };
 
+
 int main()
 {
 	try
 	{
-		constexpr auto test_rand = 10000;
+		constexpr auto test_rand = 4;
 
 		auto brain = std::make_unique<Brain>();
-		std::cout << "Alpha Boot Success.\n";
+		std::cout << "Brain construction success.\n";
 
 		// Start seeding the Brain with random Neurons
 		for (int i = 0; i != test_rand; i++)
@@ -75,10 +82,21 @@ int main()
 			brain->generate_neuron();
 		}
 
-		std::cout << "Brain Test Run\n";
+		std::cout << "Brain Test Run...\n";
+
+		#ifdef NEURON_DEBUG
+		std::cout << "Preparing...";
+		// Construct small circular network for debugging purposes
+		meta_neuron::form_link(brain->get_neurons()[0], brain->get_neurons()[1], true);
+		meta_neuron::form_link(brain->get_neurons()[1], brain->get_neurons()[2], true);
+		meta_neuron::form_link(brain->get_neurons()[2], brain->get_neurons()[3], true);
+		meta_neuron::form_link(brain->get_neurons()[3], brain->get_neurons()[0], true);
+		#endif
+
 		std::cout << "Press Enter to run simulation\n";
 
 		std::cin.get();
+
 		brain->start();
 
 		std::cout << "Processing... Press Enter to shutdown the <Brain>";

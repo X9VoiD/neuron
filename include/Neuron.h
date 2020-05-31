@@ -9,8 +9,18 @@
 using pulse_distance = unsigned int;
 using axon_distance = unsigned int;
 
+#ifdef NEURON_DEBUG
+class meta_neuron;
+#endif
+
+class ThreadPool;
+
 class Neuron
 {
+	#ifdef NEURON_DEBUG
+	friend class meta_neuron;
+	#endif
+
 	struct NeuronState
 	{
 		NeuronState(float, float, float, float, ThreadPool*);
@@ -40,7 +50,7 @@ public:
 	Neuron(Neuron&&) = default;
 
 	void update();
-	inline const std::shared_ptr<NeuronState>& get_state();
+	const std::shared_ptr<NeuronState>& get_state();
 	inline const std::shared_ptr<CollectiveDendrite>& get_dendrite();
 	inline const std::shared_ptr<Axon>& get_axon();
 };
@@ -49,6 +59,9 @@ public:
 
 class Neuron::Axon
 {
+	#ifdef NEURON_DEBUG
+	friend class meta_neuron;
+	#endif
 public:
 	Axon(const std::shared_ptr<NeuronState>&);
 
@@ -65,7 +78,13 @@ public:
 private:
 	struct AxonTarget
 	{
+		AxonTarget() = default;
 		CollectiveDendrite* target;
+		float distance = 0.0f;
+		float reach = 0.0f;
+
+		AxonTarget(CollectiveDendrite* ptarget, float pdistance, float preach) :
+			target(ptarget), distance(pdistance), reach(preach) {}
 	};
 	Axon* id;
 	std::vector<AxonTarget> targets;
@@ -77,6 +96,9 @@ private:
 
 class Neuron::CollectiveDendrite
 {
+	#ifdef NEURON_DEBUG
+	friend class meta_neuron;
+	#endif
 public:
 	CollectiveDendrite(const std::shared_ptr<NeuronState>&);
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.17.2)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(neuron)
@@ -18,7 +18,12 @@ set(HEADERS
 	"include/ThreadPool.h"
 )
 
+set(DEBUG_FILES
+	"include/debug_tool/dNeuron.h"
+)
+
 source_group("Header Files" ${HEADERS})
 source_group("Source Files" ${SOURCES})
+source_group("Debugger Files" ${DEBUG_FILES})
 
-add_executable(neuron ${SOURCES} ${HEADERS})
+add_executable(neuron ${SOURCES} ${HEADERS} ${DEBUG_FILES})

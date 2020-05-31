@@ -6,6 +6,9 @@
 #include <thread>
 #include <mutex>
 #include <functional>
+#include "Neuron.h"
+
+class Neuron;
 
 class ThreadPool
 {
@@ -14,12 +17,14 @@ class ThreadPool
 	std::atomic<int> running = 1;
 
 	std::vector<std::unique_ptr<std::thread>> pool;
+	std::unique_ptr<std::thread> choreographer;
 	std::vector<std::shared_ptr<ThreadState>> queue_array;
 
 	std::unique_ptr<Barrier> pool_barrier;
-	std::shared_ptr<Barrier> main_barrier;
+	std::unique_ptr<Barrier> main_barrier;
 
 	void threadFunc(const std::shared_ptr<ThreadState>&);
+	void choreoFunc();
 
 public:
 	ThreadPool();
@@ -39,13 +44,14 @@ public:
 
 struct ThreadPool::ThreadState
 {
-	std::shared_ptr<Barrier> barrier;
-	int id;
-	int tick_observer;
+	unsigned int id;
+	unsigned int tick_observer;
+	static unsigned int neuron_count;
 	std::queue<std::function<void()>> c1;
 	std::queue<std::function<void()>> c2;
+	std::vector<Neuron*> n;
 	std::mutex tqueue_lock;
-	ThreadState(std::shared_ptr<Barrier>&, int);
+	ThreadState(int);
 
 	inline std::queue<std::function<void()>>& get_command_array();
 	inline std::queue<std::function<void()>>& get_future_command_array();
@@ -55,8 +61,8 @@ struct ThreadPool::ThreadState
 class ThreadPool::Barrier
 {
 	std::atomic<int> count;
-	int num_threads;
-	int left;
+	unsigned int num_threads;
+	unsigned int left;
 	std::mutex mtx;
 	std::condition_variable cv;
 	std::atomic<bool> bypass = false;

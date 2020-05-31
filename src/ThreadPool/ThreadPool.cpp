@@ -1,3 +1,4 @@
+#include <chrono>
 #include "../../include/ThreadPool.h"
 
 const unsigned int THREADS = std::thread::hardware_concurrency();
@@ -6,19 +7,19 @@ const unsigned int THREADS = std::thread::hardware_concurrency();
 
 // ThreadPool
 
-
+class Brain;
 
 ThreadPool::ThreadPool()
 {
 	int i = 0;
 	pool.resize(THREADS);
-	main_barrier = std::make_shared<Barrier>(THREADS);
-	pool_barrier = std::make_unique<Barrier>(THREADS + 1);
+	main_barrier = std::make_unique<Barrier>(THREADS + 1);
+	pool_barrier = std::make_unique<Barrier>(THREADS + 2);
 	queue_array.reserve(THREADS);
+	choreographer = std::make_unique<std::thread>(&ThreadPool::choreoFunc, this);
 	for (auto& child : pool)
 	{
-		std::shared_ptr<Barrier> ppbarrier = main_barrier;
-		std::shared_ptr<ThreadState> tstate = std::make_shared<ThreadState>(ppbarrier, i);
+		std::shared_ptr<ThreadState> tstate = std::make_shared<ThreadState>(i);
 		queue_array.push_back(tstate);
 		child = std::make_unique<std::thread>(&ThreadPool::threadFunc, this, std::move(tstate));
 		++i;
@@ -52,6 +53,7 @@ void ThreadPool::join()
 	{
 		child->join();
 	}
+	choreographer->join();
 }
 
 void ThreadPool::enqueue(std::function<void()> work)
@@ -76,7 +78,18 @@ void ThreadPool::threadFunc(const std::shared_ptr<ThreadState>& state)
 			state->get_command_array().pop();
 		}
 		state->prepare_next_tick();
-		state->barrier->sync();
+		main_barrier->sync();
+	}
+}
+
+void ThreadPool::choreoFunc()
+{
+	using namespace std::chrono_literals;
+	pool_barrier->sync();
+	while (running == 1)
+	{
+		std::this_thread::sleep_for(1s);
+		main_barrier->sync();
 	}
 }
 
@@ -126,9 +139,8 @@ void ThreadPool::Barrier::invalidate()
 
 
 
-ThreadPool::ThreadState::ThreadState(std::shared_ptr<Barrier>& pbarrier, int pid)
+ThreadPool::ThreadState::ThreadState(int pid)
 {
-	barrier = std::move(pbarrier);
 	id = pid;
 	tick_observer = 0;
 }

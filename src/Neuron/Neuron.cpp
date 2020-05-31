@@ -24,6 +24,11 @@ Neuron::Neuron(float x, float y, float z, ThreadPool* p_worker)
 void Neuron::update()
 {
 	// TODO: Implement
+	if (state->polarization >= state->pulse_resistance)
+	{
+		axon->send_pulse();
+		state->polarization -= state->pulse_resistance;
+	}
 	dendrite->update();
 	axon->update();
 }
@@ -46,7 +51,8 @@ Neuron::Axon::Axon(const std::shared_ptr<NeuronState>& pneuron_state)
 
 void Neuron::Axon::send_pulse()
 {
-	for (auto const& synapse : targets) {
+	for (auto const& synapse : targets)
+	{
 		neuron_state->worker->enqueue(
 			[&]() { synapse.target->receive_pulse(id); });
 	}
@@ -130,6 +136,7 @@ void Neuron::CollectiveDendrite::update_link_strength(Axon* sender, bool positiv
 void Neuron::CollectiveDendrite::update()
 {
 	// TODO: Implement
+	travel_pulses();
 }
 
 inline const std::shared_ptr<Neuron::NeuronState>& Neuron::CollectiveDendrite::get_state() { return neuron_state; }
