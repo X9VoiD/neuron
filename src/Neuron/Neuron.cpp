@@ -47,7 +47,8 @@ Neuron::Axon::Axon(const std::shared_ptr<NeuronState>& pneuron_state)
 void Neuron::Axon::send_pulse()
 {
 	for (auto const& synapse : targets) {
-		synapse.target->receive_pulse(id);
+		neuron_state->worker->enqueue(
+			[&]() { synapse.target->receive_pulse(id); });
 	}
 	neuron_state->hot = true;
 }
