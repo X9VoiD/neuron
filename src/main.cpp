@@ -16,7 +16,7 @@ public:
 	// TODO
 	Brain()
 	{
-		worker = std::make_unique<ThreadPool>();
+		worker = std::make_unique<ThreadPool>(this);
 		constexpr float brain_world_center = 2.0;
 		constexpr int mem_relax = 5;
 		neurons.reserve((pow(BRAINSIZE, 3)) / mem_relax);
@@ -40,12 +40,14 @@ public:
 	void generate_neuron()
 	{
 		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position(), &(*worker));
+		worker->register_neuron(&(neurons.back()));
 		// TODO: Implement neuron spatial awareness.
 	}
 
 	void generate_neuron(float x, float y, float z)
 	{
 		neurons.emplace_back(x, y, z, &(*worker));
+		worker->register_neuron(&(neurons.back()));
 	}
 
 	std::vector<Neuron>& get_neurons()

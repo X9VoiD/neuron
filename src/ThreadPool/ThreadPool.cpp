@@ -9,7 +9,7 @@ const unsigned int THREADS = std::thread::hardware_concurrency();
 
 class Brain;
 
-ThreadPool::ThreadPool()
+ThreadPool::ThreadPool(Brain* pbrain): brain(pbrain)
 {
 	int i = 0;
 	pool.resize(THREADS);
@@ -67,6 +67,14 @@ void ThreadPool::enqueue(std::function<void()> work)
 	(*t)->get_future_command_array().push(work);
 }
 
+void ThreadPool::register_neuron(Neuron* pn)
+{
+	auto t = std::min_element(queue_array.begin(), queue_array.end(),
+			[](const std::shared_ptr<ThreadState>& a, const std::shared_ptr<ThreadState>& b)
+			{ return a->n.size() < b->n.size(); });
+	(*t)->n.push_back(pn);
+}
+
 void ThreadPool::threadFunc(const std::shared_ptr<ThreadState>& state)
 {
 	pool_barrier->sync();
@@ -76,6 +84,10 @@ void ThreadPool::threadFunc(const std::shared_ptr<ThreadState>& state)
 		{
 			state->get_command_array().front()();
 			state->get_command_array().pop();
+		}
+		for (auto& neuron : state->n)
+		{
+			neuron->update();
 		}
 		state->prepare_next_tick();
 		main_barrier->sync();

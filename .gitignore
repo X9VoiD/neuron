@@ -343,3 +343,6 @@ healthchecksdb
 build/*
 !/build/.gitkeep
 out/
+.clangd/
+compile_commands.json
+

@@ -9,12 +9,14 @@
 #include "Neuron.h"
 
 class Neuron;
+class Brain;
 
 class ThreadPool
 {
 	struct ThreadState;
 	class Barrier;
 	std::atomic<int> running = 1;
+	Brain* brain;
 
 	std::vector<std::unique_ptr<std::thread>> pool;
 	std::unique_ptr<std::thread> choreographer;
@@ -27,7 +29,7 @@ class ThreadPool
 	void choreoFunc();
 
 public:
-	ThreadPool();
+	ThreadPool(Brain*);
 	~ThreadPool();
 
 	ThreadPool(const ThreadPool&) = delete;
@@ -39,6 +41,7 @@ public:
 	void join();
 
 	void enqueue(std::function<void()>);
+	void register_neuron(Neuron*);
 	Barrier* get_barrier();
 };
 
