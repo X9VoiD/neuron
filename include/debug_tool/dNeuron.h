@@ -36,6 +36,6 @@ public:
 	 */
 	static void prepare_fire(Neuron& neuron)
 	{
-		neuron.state->polarization = neuron.state->pulse_resistance + 1;
+		neuron.state->polarization = neuron.state->pulse_resistance;
 	}
 };

@@ -13,10 +13,12 @@ ThreadPool::ThreadPool(Brain* pbrain): brain(pbrain)
 {
 	int i = 0;
 	pool.resize(THREADS);
-	main_barrier = std::make_unique<Barrier>(THREADS + 1);
-	pool_barrier = std::make_unique<Barrier>(THREADS + 2);
+	main_barrier = std::make_unique<Barrier>(THREADS);
+	pool_barrier = std::make_unique<Barrier>(THREADS + 1);
+	//main_barrier = std::make_unique<Barrier>(THREADS + 1);
+	//pool_barrier = std::make_unique<Barrier>(THREADS + 2);
 	queue_array.reserve(THREADS);
-	choreographer = std::make_unique<std::thread>(&ThreadPool::choreoFunc, this);
+	//choreographer = std::make_unique<std::thread>(&ThreadPool::choreoFunc, this);
 	for (auto& child : pool)
 	{
 		std::shared_ptr<ThreadState> tstate = std::make_shared<ThreadState>(i);
@@ -53,7 +55,7 @@ void ThreadPool::join()
 	{
 		child->join();
 	}
-	choreographer->join();
+	//choreographer->join();
 }
 
 void ThreadPool::enqueue(std::function<void()> work)
@@ -93,18 +95,18 @@ void ThreadPool::threadFunc(const std::shared_ptr<ThreadState>& state)
 		main_barrier->sync();
 	}
 }
-
+/*
 void ThreadPool::choreoFunc()
 {
 	using namespace std::chrono_literals;
 	pool_barrier->sync();
 	while (running == 1)
 	{
-		std::this_thread::sleep_for(1s);
+		//std::this_thread::sleep_for(1us);
 		main_barrier->sync();
 	}
 }
-
+*/
 ThreadPool::Barrier* ThreadPool::get_barrier()
 {
 	return &(*pool_barrier);
@@ -161,18 +163,22 @@ inline std::queue<std::function<void()>>&
 ThreadPool::ThreadState::get_command_array()
 {
 	if (tick_observer == 1) { return c2; }
-	else { return c1; }
+	return c1;
 }
 
 inline std::queue<std::function<void()>>&
 ThreadPool::ThreadState::get_future_command_array()
 {
 	if (tick_observer == 1) { return c1; }
-	else { return c2; }
+	return c2;
 }
 
 inline void ThreadPool::ThreadState::prepare_next_tick()
 {
-	if (tick_observer == 1) { tick_observer = 0; }
-	else { tick_observer = 1; }
+	if (tick_observer == 1)
+	{
+		tick_observer = 0;
+		return;
+	}
+	tick_observer = 1;
 }

@@ -23,8 +23,9 @@ class Neuron
 
 	struct NeuronState
 	{
-		NeuronState(float, float, float, float, ThreadPool*);
+		NeuronState(float, float, float, float, ThreadPool*, unsigned int);
 
+		unsigned int id;
 		bool hot = false;
 		float polarization = 0.0f;
 		std::array<float, 3> position;
@@ -41,7 +42,7 @@ class Neuron
 	std::shared_ptr<NeuronState> state;
 
 public:
-	Neuron(float, float, float, ThreadPool*);
+	Neuron(float, float, float, ThreadPool*, unsigned int);
 
 	~Neuron() = default;
 	Neuron& operator=(const Neuron&) = delete;
@@ -124,6 +125,7 @@ private:
 	};
 	std::unordered_map<Axon*, std::unique_ptr<Link>> links;
 	std::shared_ptr<NeuronState> neuron_state;
+	std::vector<unsigned int> pulse_del_buffer;
 
 	void travel_pulses();
 	void collect_pulse(Axon*, const std::unique_ptr<Link>&);

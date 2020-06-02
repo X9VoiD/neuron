@@ -1,11 +1,10 @@
 #include "../../include/Neuron.h"
 constexpr auto PULSE_RESISTANCE = 4.0f;
 
-
-
 // Neuron
 
-Neuron::NeuronState::NeuronState(float x, float y, float z, float p_pulse_resistance, ThreadPool* p_worker)
+Neuron::NeuronState::NeuronState(float x, float y, float z, float p_pulse_resistance,
+	ThreadPool* p_worker, unsigned int nid) : id(nid)
 {
 	pulse_resistance = p_pulse_resistance;
 	position = { x, y, z };
@@ -13,9 +12,9 @@ Neuron::NeuronState::NeuronState(float x, float y, float z, float p_pulse_resist
 	worker = p_worker;
 }
 
-Neuron::Neuron(float x, float y, float z, ThreadPool* p_worker)
+Neuron::Neuron(float x, float y, float z, ThreadPool* p_worker, unsigned int id)
 {
-		state = std::make_shared<NeuronState>(x, y, z, PULSE_RESISTANCE, p_worker);
+		state = std::make_shared<NeuronState>(x, y, z, PULSE_RESISTANCE, p_worker, id);
 		// Initialize appendages
 		dendrite = std::make_shared<CollectiveDendrite>(state);
 		axon = std::make_shared<Axon>(state);
@@ -98,16 +97,31 @@ void Neuron::CollectiveDendrite::travel_pulses()
 {
 	for (const auto& link : links)
 	{
+		unsigned int tracker = 0;
+		pulse_del_buffer.clear();
+
 		for (auto& pulse : link.second->pulses)
 		{
 			if (pulse > 1) { pulse--; }
 			else
-			{
-				neuron_state->worker->enqueue
-				(
+			{ 
+
+				pulse_del_buffer.push_back(tracker);
+				neuron_state->worker->enqueue(
 					[=, &link]() { collect_pulse(link.first, link.second); }
 				);
 			}
+			++tracker;
+		}
+
+		unsigned int offset = 0;
+		auto pulse_iter = link.second->pulses.begin();
+		
+		for (auto n : pulse_del_buffer)
+		{
+			link.second->pulses.erase(pulse_iter + n + offset);
+			++offset;
+			
 		}
 	}
 }

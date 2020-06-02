@@ -19,14 +19,14 @@ class ThreadPool
 	Brain* brain;
 
 	std::vector<std::unique_ptr<std::thread>> pool;
-	std::unique_ptr<std::thread> choreographer;
+	//std::unique_ptr<std::thread> choreographer;
 	std::vector<std::shared_ptr<ThreadState>> queue_array;
 
 	std::unique_ptr<Barrier> pool_barrier;
 	std::unique_ptr<Barrier> main_barrier;
 
 	void threadFunc(const std::shared_ptr<ThreadState>&);
-	void choreoFunc();
+	//void choreoFunc();
 
 public:
 	ThreadPool(Brain*);

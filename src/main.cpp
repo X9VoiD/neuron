@@ -35,18 +35,19 @@ private:
 	std::vector<Neuron> neurons;
 	std::uniform_real_distribution<float> distribution;
 	std::unique_ptr<ThreadPool> worker;
+	unsigned int neuron_count = 0;
 
 public:
 	void generate_neuron()
 	{
-		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position(), &(*worker));
+		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position(), &(*worker), neuron_count++);
 		worker->register_neuron(&(neurons.back()));
 		// TODO: Implement neuron spatial awareness.
 	}
 
 	void generate_neuron(float x, float y, float z)
 	{
-		neurons.emplace_back(x, y, z, &(*worker));
+		neurons.emplace_back(x, y, z, &(*worker), neuron_count++);
 		worker->register_neuron(&(neurons.back()));
 	}
 
@@ -73,35 +74,36 @@ int main()
 {
 	try
 	{
-		constexpr auto test_rand = 4;
+		constexpr auto spawn_count = 3;
 
 		auto brain = std::make_unique<Brain>();
 		std::cout << "Brain construction success.\n";
 
 		// Start seeding the Brain with random Neurons
-		for (int i = 0; i != test_rand; i++)
+		for (int i = 0; i != spawn_count; i++)
 		{
 			brain->generate_neuron();
 		}
 
-		std::cout << "Brain Test Run...\n";
+		std::cout << "Neuron count: " << brain->get_neurons().size() << std::endl;
 
 		#ifdef NEURON_DEBUG
-		std::cout << "Preparing...";
 		// Construct small circular network for debugging purposes
-		meta_neuron::form_link(brain->get_neurons()[0], brain->get_neurons()[1], true);
-		meta_neuron::form_link(brain->get_neurons()[1], brain->get_neurons()[2], true);
-		meta_neuron::form_link(brain->get_neurons()[2], brain->get_neurons()[3], true);
-		meta_neuron::form_link(brain->get_neurons()[3], brain->get_neurons()[0], true);
+		for (int i = 0; i != spawn_count - 1; i++)
+		{
+			meta_neuron::form_link(brain->get_neurons()[i], brain->get_neurons()[i + 1], true);
+		}
+		meta_neuron::form_link(brain->get_neurons()[spawn_count - 1], brain->get_neurons()[0], true);
+		meta_neuron::prepare_fire(brain->get_neurons()[0]);
 		#endif
 
 		std::cout << "Press Enter to run simulation\n";
 
 		std::cin.get();
 
-		brain->start();
+		std::cout << "Press Enter to stop simulation\n";
 
-		std::cout << "Processing... Press Enter to shutdown the <Brain>";
+		brain->start();
 
 		std::cin.get();
 
