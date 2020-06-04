@@ -96,7 +96,7 @@ void Neuron::CollectiveDendrite::travel_pulses()
 		
 		for (auto n : pulse_del_buffer)
 		{
-			link.second->pulses.erase(pulse_iter + n + offset);
+			link.second->pulses.erase(pulse_iter + n - offset);
 			++offset;
 			
 		}
