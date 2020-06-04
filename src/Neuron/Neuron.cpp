@@ -1,21 +1,15 @@
 #include "../../include/Neuron.h"
 constexpr auto PULSE_RESISTANCE = 4.0f;
 
+
+
 // Neuron
 
-Neuron::NeuronState::NeuronState(float x, float y, float z, float p_pulse_resistance,
-	ThreadPool* p_worker, unsigned int nid) : id(nid)
-{
-	pulse_resistance = p_pulse_resistance;
-	position = { x, y, z };
-	nconnections = 0;
-	worker = p_worker;
-}
 
-Neuron::Neuron(float x, float y, float z, ThreadPool* p_worker, unsigned int id)
+
+Neuron::Neuron(float x, float y, float z, ThreadPool* p_worker, unsigned int id) :
+	state(std::make_shared<NeuronState>(x, y, z, PULSE_RESISTANCE, p_worker, id))
 {
-		state = std::make_shared<NeuronState>(x, y, z, PULSE_RESISTANCE, p_worker, id);
-		// Initialize appendages
 		dendrite = std::make_shared<CollectiveDendrite>(state);
 		axon = std::make_shared<Axon>(state);
 }
@@ -32,21 +26,11 @@ void Neuron::update()
 	axon->update();
 }
 
-inline const std::shared_ptr<Neuron::NeuronState>& Neuron::get_state() { return state; }
-inline const std::shared_ptr<Neuron::CollectiveDendrite>& Neuron::get_dendrite() { return dendrite; }
-inline const std::shared_ptr<Neuron::Axon>& Neuron::get_axon() { return axon; }
-
 
 
 // Axon
 
 
-
-Neuron::Axon::Axon(const std::shared_ptr<NeuronState>& pneuron_state)
-{
-	neuron_state = pneuron_state;
-	id = this;
-}
 
 void Neuron::Axon::send_pulse()
 {
@@ -63,18 +47,11 @@ void Neuron::Axon::update()
 	// TODO: Implement
 }
 
-inline const std::shared_ptr<Neuron::NeuronState>& Neuron::Axon::get_state() { return neuron_state; }
-
 
 
 // CollectiveDendrite
 
 
-
-Neuron::CollectiveDendrite::CollectiveDendrite(const std::shared_ptr<NeuronState>& pneuron_state)
-{
-	neuron_state = pneuron_state;
-}
 
 void Neuron::CollectiveDendrite::form_link(Axon* axon, int length)
 {
@@ -108,7 +85,7 @@ void Neuron::CollectiveDendrite::travel_pulses()
 
 				pulse_del_buffer.push_back(tracker);
 				neuron_state->worker->enqueue(
-					[=, &link]() { collect_pulse(link.first, link.second); }
+					[=, &link]() { collect_pulse(link.first, *(link.second)); }
 				);
 			}
 			++tracker;
@@ -126,9 +103,9 @@ void Neuron::CollectiveDendrite::travel_pulses()
 	}
 }
 
-void Neuron::CollectiveDendrite::collect_pulse(Axon* sender, const std::unique_ptr<Link>& link)
+void Neuron::CollectiveDendrite::collect_pulse(Axon* sender, const Link& link)
 {
-	neuron_state->polarization += link->weight;
+	neuron_state->polarization += link.weight;
 	neuron_state->worker->enqueue(
 		[=]() { update_link_strength(sender, sender->get_state()->hot); }
 	);
@@ -152,5 +129,3 @@ void Neuron::CollectiveDendrite::update()
 	// TODO: Implement
 	travel_pulses();
 }
-
-inline const std::shared_ptr<Neuron::NeuronState>& Neuron::CollectiveDendrite::get_state() { return neuron_state; }

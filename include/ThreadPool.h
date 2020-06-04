@@ -25,11 +25,11 @@ class ThreadPool
 	std::unique_ptr<Barrier> pool_barrier;
 	std::unique_ptr<Barrier> main_barrier;
 
-	void threadFunc(const std::shared_ptr<ThreadState>&);
+	void threadFunc(ThreadState*);
 	//void choreoFunc();
 
 public:
-	ThreadPool(Brain*);
+	explicit ThreadPool(Brain*);
 	~ThreadPool();
 
 	ThreadPool(const ThreadPool&) = delete;
@@ -37,12 +37,12 @@ public:
 	ThreadPool& operator=(const ThreadPool&) = delete;
 	ThreadPool& operator=(ThreadPool&&) = delete;
 
-	void shutdown();
+	void shutdown() noexcept;
 	void join();
 
 	void enqueue(std::function<void()>);
 	void register_neuron(Neuron*);
-	Barrier* get_barrier();
+	Barrier* get_barrier() noexcept { return &(*pool_barrier); }
 };
 
 struct ThreadPool::ThreadState
@@ -54,11 +54,11 @@ struct ThreadPool::ThreadState
 	std::queue<std::function<void()>> c2;
 	std::vector<Neuron*> n;
 	std::mutex tqueue_lock;
-	ThreadState(int);
+	explicit ThreadState(int);
 
-	inline std::queue<std::function<void()>>& get_command_array();
-	inline std::queue<std::function<void()>>& get_future_command_array();
-	inline void prepare_next_tick();
+	inline std::queue<std::function<void()>>& get_command_array() noexcept;
+	inline std::queue<std::function<void()>>& get_future_command_array() noexcept;
+	inline void prepare_next_tick() noexcept;
 };
 
 class ThreadPool::Barrier
@@ -71,7 +71,13 @@ class ThreadPool::Barrier
 	std::atomic<bool> bypass = false;
 
 public:
-	Barrier(int);
+	explicit Barrier(int pnum_threads) :
+		count(pnum_threads),
+		num_threads(pnum_threads),
+		left(0)
+	{
+
+	}
 
 	~Barrier() = default;
 	Barrier& operator=(const Barrier&) = delete;
@@ -80,5 +86,5 @@ public:
 	Barrier(Barrier&&) = delete;
 
 	void sync();
-	void invalidate();
+	void invalidate() noexcept;
 };

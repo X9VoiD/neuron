@@ -21,9 +21,8 @@ ThreadPool::ThreadPool(Brain* pbrain): brain(pbrain)
 	//choreographer = std::make_unique<std::thread>(&ThreadPool::choreoFunc, this);
 	for (auto& child : pool)
 	{
-		std::shared_ptr<ThreadState> tstate = std::make_shared<ThreadState>(i);
-		queue_array.push_back(tstate);
-		child = std::make_unique<std::thread>(&ThreadPool::threadFunc, this, std::move(tstate));
+		queue_array.push_back(std::move(std::make_shared<ThreadState>(i)));
+		child = std::make_unique<std::thread>(&ThreadPool::threadFunc, this, &(*queue_array[i]));
 		++i;
 	}
 }
@@ -43,7 +42,7 @@ ThreadPool::~ThreadPool()
 	catch (...) {};
 }
 
-void ThreadPool::shutdown()
+void ThreadPool::shutdown() noexcept
 {
 	main_barrier->invalidate();
 	running = 0;
@@ -73,11 +72,11 @@ void ThreadPool::register_neuron(Neuron* pn)
 {
 	auto t = std::min_element(queue_array.begin(), queue_array.end(),
 			[](const std::shared_ptr<ThreadState>& a, const std::shared_ptr<ThreadState>& b)
-			{ return a->n.size() < b->n.size(); });
+			noexcept { return a->n.size() < b->n.size(); });
 	(*t)->n.push_back(pn);
 }
 
-void ThreadPool::threadFunc(const std::shared_ptr<ThreadState>& state)
+void ThreadPool::threadFunc(ThreadState* state)
 {
 	pool_barrier->sync();
 	while (running == 1)
@@ -95,6 +94,7 @@ void ThreadPool::threadFunc(const std::shared_ptr<ThreadState>& state)
 		main_barrier->sync();
 	}
 }
+
 /*
 void ThreadPool::choreoFunc()
 {
@@ -107,23 +107,12 @@ void ThreadPool::choreoFunc()
 	}
 }
 */
-ThreadPool::Barrier* ThreadPool::get_barrier()
-{
-	return &(*pool_barrier);
-}
 
 
 
 // Barrier
 
 
-
-ThreadPool::Barrier::Barrier(int pnum_threads)
-{
-	count = pnum_threads;
-	num_threads = pnum_threads;
-	left = 0;
-}
 
 void ThreadPool::Barrier::sync()
 {
@@ -137,11 +126,11 @@ void ThreadPool::Barrier::sync()
 	else
 	{
 		if (!bypass) { cv.wait(lck); }
-		else if (bypass) { cv.notify_all(); }
+		else { cv.notify_all(); }
 	}
 }
 
-void ThreadPool::Barrier::invalidate()
+void ThreadPool::Barrier::invalidate() noexcept
 {
 	bypass = true;
 	cv.notify_all();
@@ -160,20 +149,20 @@ ThreadPool::ThreadState::ThreadState(int pid)
 }
 
 inline std::queue<std::function<void()>>&
-ThreadPool::ThreadState::get_command_array()
+ThreadPool::ThreadState::get_command_array() noexcept
 {
 	if (tick_observer == 1) { return c2; }
 	return c1;
 }
 
 inline std::queue<std::function<void()>>&
-ThreadPool::ThreadState::get_future_command_array()
+ThreadPool::ThreadState::get_future_command_array() noexcept
 {
 	if (tick_observer == 1) { return c1; }
 	return c2;
 }
 
-inline void ThreadPool::ThreadState::prepare_next_tick()
+inline void ThreadPool::ThreadState::prepare_next_tick() noexcept
 {
 	if (tick_observer == 1)
 	{

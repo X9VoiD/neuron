@@ -3,7 +3,6 @@
 #include "../include/debug_tool/dNeuron.h"
 #include "../include/Neuron.h"
 #include "../include/ThreadPool.h"
-constexpr auto BRAINSIZE = 10;
 
 /*
 		TODO: Axon Growth; Dendrite Signal Convergence; Brain
@@ -12,24 +11,6 @@ constexpr auto BRAINSIZE = 10;
 
 class Brain
 {
-public:
-	// TODO
-	Brain()
-	{
-		worker = std::make_unique<ThreadPool>(this);
-		constexpr float brain_world_center = 2.0;
-		constexpr int mem_relax = 5;
-		neurons.reserve((pow(BRAINSIZE, 3)) / mem_relax);
-		distribution = std::uniform_real_distribution<float>(-(static_cast<float>(BRAINSIZE) / brain_world_center),
-			(static_cast<float>(BRAINSIZE) / brain_world_center));
-		rng = std::mt19937(seed());
-	}
-	inline float gen_rand_position()
-	{
-		return distribution(rng);
-	}
-
-private:
 	std::random_device seed;
 	std::mt19937 rng;
 	std::vector<Neuron> neurons;
@@ -37,7 +18,24 @@ private:
 	std::unique_ptr<ThreadPool> worker;
 	unsigned int neuron_count = 0;
 
+	inline float gen_rand_position()
+	{
+		return distribution(rng);
+	}
+
 public:
+	// TODO
+	Brain(float brain_size)
+	{
+		worker = std::make_unique<ThreadPool>(this);
+		constexpr float offset = 2.0;
+		constexpr int mem_relax = 5;
+		neurons.reserve((std::pow(brain_size, 3)) / mem_relax);
+		distribution = std::uniform_real_distribution<float>(-(static_cast<float>(brain_size) / offset),
+			(static_cast<float>(brain_size) / offset));
+		rng = std::mt19937(seed());
+	}
+
 	void generate_neuron()
 	{
 		neurons.emplace_back(gen_rand_position(), gen_rand_position(), gen_rand_position(), &(*worker), neuron_count++);
@@ -51,7 +49,7 @@ public:
 		worker->register_neuron(&(neurons.back()));
 	}
 
-	std::vector<Neuron>& get_neurons()
+	std::vector<Neuron>& get_neurons() noexcept
 	{
 		return neurons;
 	}
@@ -74,44 +72,48 @@ int main()
 {
 	try
 	{
-		constexpr auto spawn_count = 3;
+		uint64_t spawn_count = 0;
+		float brain_size = 20;
 
-		auto brain = std::make_unique<Brain>();
-		std::cout << "Brain construction success.\n";
+		std::cout << "Amount of Neuron: ";
+		std::cin >> spawn_count;
 
-		// Start seeding the Brain with random Neurons
+		std::cout << "Brain World Size (x, y, z) (default = 20): ";
+		std::cin >> brain_size;
+		std::cin.ignore(INT_MAX, '\n');
+
+		Brain brain = Brain(brain_size);
+
 		for (int i = 0; i != spawn_count; i++)
 		{
-			brain->generate_neuron();
+			brain.generate_neuron();
 		}
 
-		std::cout << "Neuron count: " << brain->get_neurons().size() << std::endl;
+		std::cout << "Brain construction success.\n";
 
-		#ifdef NEURON_DEBUG
+		auto brain_neurons = &(brain.get_neurons());
+		std::cout << "Verified neuron count: " << brain.get_neurons().size() << std::endl;
+
 		// Construct small circular network for debugging purposes
-		for (int i = 0; i != spawn_count - 1; i++)
+		for (uint64_t i = 0; i != spawn_count - 1; i++)
 		{
-			meta_neuron::form_link(brain->get_neurons()[i], brain->get_neurons()[i + 1], true);
+			meta_neuron::form_link(brain_neurons->at(i), brain_neurons->at(i + 1), true);
 		}
-		meta_neuron::form_link(brain->get_neurons()[spawn_count - 1], brain->get_neurons()[0], true);
-		meta_neuron::prepare_fire(brain->get_neurons()[0]);
-		#endif
 
-		std::cout << "Press Enter to run simulation\n";
+		meta_neuron::form_link(brain_neurons->at(spawn_count - 1), brain_neurons->at(0), true);
+		meta_neuron::prepare_fire(brain_neurons->at(0));
 
-		std::cin.get();
-
-		std::cout << "Press Enter to stop simulation\n";
-
-		brain->start();
-
+		std::cout << "Simulation started. Press Enter to stop.\n";
+		brain.start();
 		std::cin.get();
 
 		std::cout << "Attempting Brain Shutdown.\n";
-
-		brain->shutdown();
+		brain.shutdown();
 
 		std::cout << "Brain Shutdown Successful.\n";
 	}
-	catch (...) {}
+	catch (...)
+	{
+		
+	}
 }
