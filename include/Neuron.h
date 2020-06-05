@@ -46,6 +46,8 @@ class Neuron
 	std::shared_ptr<CollectiveDendrite> dendrite;
 	std::shared_ptr<NeuronState> state;
 
+	void decay() noexcept;
+
 public:
 	Neuron(float, float, float, ThreadPool*, unsigned int);
 
