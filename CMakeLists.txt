@@ -11,11 +11,13 @@ set(SOURCES
 	"src/main.cpp"
 	"src/Neuron/Neuron.cpp"
 	"src/ThreadPool/ThreadPool.cpp"
+	"src/World/World3D.cpp"
 )
 
 set(HEADERS
 	"include/Neuron.h"
 	"include/ThreadPool.h"
+	"include/World3D.h"
 )
 
 set(DEBUG_FILES

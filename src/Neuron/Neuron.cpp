@@ -7,11 +7,11 @@ constexpr auto PULSE_RESISTANCE = 4.0f;
 
 
 
-Neuron::Neuron(float x, float y, float z, ThreadPool* p_worker, unsigned int id) :
-	state(std::make_shared<NeuronState>(x, y, z, PULSE_RESISTANCE, p_worker, id))
+Neuron::Neuron(float x, float y, float z, ThreadPool* p_worker, unsigned int id)
 {
-		dendrite = std::make_shared<CollectiveDendrite>(state);
-		axon = std::make_shared<Axon>(state);
+	state = std::make_shared<NeuronState>(x, y, z, PULSE_RESISTANCE, p_worker, id);
+	dendrite = std::make_shared<CollectiveDendrite>(state);
+	axon = std::make_shared<Axon>(state);
 }
 
 void Neuron::update()

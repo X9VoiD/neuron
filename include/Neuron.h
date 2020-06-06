@@ -8,6 +8,7 @@
 
 using pulse_distance = unsigned int;
 using axon_distance = unsigned int;
+using NeuronPos3D = std::array<float, 3>;
 
 class meta_neuron;
 
@@ -22,7 +23,7 @@ class Neuron
 		unsigned int id;
 		bool hot = false;
 		float polarization = 0.0f;
-		std::array<float, 3> position;
+		NeuronPos3D position;
 		float pulse_resistance;
 		unsigned int nconnections;
 		ThreadPool* worker;
