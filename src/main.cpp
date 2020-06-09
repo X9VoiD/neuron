@@ -49,7 +49,7 @@ public:
 		//neurons.emplace_back();
 		neurons.push_back(neuron);
 		worker->register_neuron(&(*neurons.back()));
-		world.insert(neurons.back());
+		world.insert(neurons.back().get());
 	}
 
 	void generate_neuron(float x, float y, float z)
@@ -58,7 +58,7 @@ public:
 		//neurons.emplace_back();
 		neurons.push_back(neuron);
 		worker->register_neuron(&(*neurons.back()));
-		world.insert(neurons.back());
+		world.insert(neurons.back().get());
 	}
 
 	std::vector<std::shared_ptr<Neuron>>& get_neurons() noexcept
@@ -202,7 +202,7 @@ void nearest_neuron_search(Brain& brain)
 			}
 		}
 		auto neuron = brain.get_neurons()[iinput];
-		auto a = brain.get_world().nearest(neuron);
+		auto a = brain.get_world().nearest(neuron.get());
 		std::cout << "Neuron 1: {" << neuron->get_state()->position[0] << ", "
 			<< neuron->get_state()->position[1] << ", "
 			<< neuron->get_state()->position[2] << "}" << std::endl;

@@ -1,12 +1,12 @@
 #include "../include/World3D.h"
 #include <utility>
 
-void World3D::insert(std::shared_ptr<Neuron>& pneuron)
+void World3D::insert(Neuron* pneuron)
 {
-	auto ab = std::make_shared<AbstractPos>(pneuron);
-	x_axis[pneuron->get_state()->position] = ab;
-	y_axis[pneuron->get_state()->position] = ab;
-	z_axis[pneuron->get_state()->position] = ab;
+	auto ab = std::make_unique<AbstractPos>(pneuron);
+	y_axis[pneuron->get_state()->position] = ab.get();
+	z_axis[pneuron->get_state()->position] = ab.get();
+	x_axis[pneuron->get_state()->position] = std::move(ab);
 }
 
 float World3D::distance(NeuronPos3D& a, NeuronPos3D& b)
@@ -16,26 +16,25 @@ float World3D::distance(NeuronPos3D& a, NeuronPos3D& b)
 	                 std::pow((a.at(2) - b.at(2)), 2));
 }
 
-std::pair<std::shared_ptr<Neuron>, float> World3D::compare(std::shared_ptr<Neuron>& base,
-	std::shared_ptr<Neuron>& a, std::shared_ptr<Neuron>& b, float distance_p)
+std::pair<Neuron*, float> World3D::compare(Neuron* base, Neuron* a, Neuron* b, float distance_p)
 {
 	float distance_a = distance(base->get_state()->position, b->get_state()->position);
-	return (distance_a < distance_p) ? std::pair<std::shared_ptr<Neuron>, float>(b,  distance_a):
-	                                   std::pair<std::shared_ptr<Neuron>, float>(a, distance_p);
+	return (distance_a < distance_p) ? std::pair<Neuron*, float>(b, distance_a):
+	                                   std::pair<Neuron*, float>(a, distance_p);
 }
 
-std::pair<std::shared_ptr<Neuron>, float> World3D::compare(std::shared_ptr<Neuron>& base, std::shared_ptr<Neuron>& a)
+std::pair<Neuron*, float> World3D::compare(Neuron* base, Neuron* a)
 {
 	float distance_a = distance(base->get_state()->position, a->get_state()->position);
-	return std::pair<std::shared_ptr<Neuron>, float>(a, distance_a);
+	return std::pair<Neuron*, float>(a, distance_a);
 }
 
 template <class T>
-std::pair<std::shared_ptr<Neuron>, float> World3D::subsearch(typename T::iterator iter, std::shared_ptr<Neuron>& base, T& axis)
+std::pair<Neuron*, float> World3D::subsearch(typename T::iterator iter, Neuron* base, T& axis)
 {
 	float pdistance = 0.0f;
-	World3D::AxisX::iterator piter, niter;
-	std::shared_ptr<Neuron>  pneuron, nneuron, snearest;
+	typename T::iterator piter, niter;
+	Neuron* pneuron; Neuron* nneuron; Neuron* snearest;
 	if ((iter != --(axis.end())) && (iter != axis.begin()))
 	{
 		piter = iter; piter++;
@@ -65,14 +64,14 @@ std::pair<std::shared_ptr<Neuron>, float> World3D::subsearch(typename T::iterato
 		snearest = x.first;
 		pdistance = x.second;
 	}
-	return std::pair<std::shared_ptr<Neuron>, float>(snearest, pdistance);
+	return std::pair<Neuron*, float>(snearest, pdistance);
 }
 
 template <class T>
-std::pair<std::shared_ptr<Neuron>, float> World3D::subsearch(typename T::iterator iter, std::shared_ptr<Neuron>& base, std::shared_ptr<Neuron>& curr_nearest, T& axis, float pdistance)
+std::pair<Neuron*, float> World3D::subsearch(typename T::iterator iter, Neuron* base, Neuron* curr_nearest, T& axis, float pdistance)
 {
-	World3D::AxisX::iterator piter, niter;
-	std::shared_ptr<Neuron>  pneuron, nneuron, snearest;
+	typename T::iterator piter, niter;
+	Neuron* pneuron; Neuron* nneuron; Neuron* snearest;
 	if ((iter != --(axis.end())) && (iter != axis.begin()))
 	{
 		piter = iter; piter++;
@@ -102,14 +101,14 @@ std::pair<std::shared_ptr<Neuron>, float> World3D::subsearch(typename T::iterato
 		snearest = x.first;
 		pdistance = x.second;
 	}
-	return std::pair<std::shared_ptr<Neuron>, float>(snearest, pdistance);
+	return std::pair<Neuron*, float>(snearest, pdistance);
 }
 
-std::shared_ptr<Neuron> World3D::nearest(std::shared_ptr<Neuron>& pneuron)
+Neuron* World3D::nearest(Neuron* pneuron)
 {
 	float pdistance     = 0.0f;
 	auto pos = pneuron->get_state()->position;
-	std::shared_ptr<Neuron> nearest;
+	Neuron* nearest;
 
 	auto pair = subsearch<World3D::AxisX>(x_axis.find(pos), pneuron, x_axis);
 	nearest   = pair.first;

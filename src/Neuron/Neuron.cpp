@@ -27,7 +27,7 @@ void Neuron::update()
 	axon->update();
 	decay(); // allow two decays for excited neuron
 	         // to compensate for the over or under polarization
-		 // after sending a pulse.
+	         // after sending a pulse.
 }
 
 void Neuron::decay() noexcept
