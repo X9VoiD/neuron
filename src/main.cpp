@@ -203,10 +203,12 @@ void nearest_neuron_search(Brain& brain)
 		}
 		auto neuron = brain.get_neurons()[iinput];
 		auto a = brain.get_world().nearest(neuron.get());
-		std::cout << "Neuron 1: {" << neuron->get_state()->position[0] << ", "
+		std::cout << "Neuron " << neuron->get_state()->id << ": {"
+			<< neuron->get_state()->position[0] << ", "
 			<< neuron->get_state()->position[1] << ", "
 			<< neuron->get_state()->position[2] << "}" << std::endl;
-		std::cout << "Neuron 2: {" << a->get_state()->position[0] << ", "
+		std::cout << "Neuron " << a->get_state()->id << ": {"
+			<< a->get_state()->position[0] << ", "
 			<< a->get_state()->position[1] << ", "
 			<< a->get_state()->position[2] << "}" << std::endl;
 	}

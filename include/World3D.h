@@ -9,11 +9,8 @@ class World3D
 	struct AbstractPos
 	{
 		Neuron* point;
-		bool ignore = false;
-
-		AbstractPos(Neuron* neuron)
+		AbstractPos(Neuron* neuron) : point(neuron)
 		{
-			point = neuron;
 		}
 	};
 
@@ -23,9 +20,9 @@ class World3D
 		bool operator()(const NeuronPos3D& a, const NeuronPos3D& b) const { return a[axis] < b[axis]; }
 	};
 
-	using AxisX = std::map < NeuronPos3D, std::unique_ptr<AbstractPos>, ABPComp<0> >;
-	using AxisY = std::map < NeuronPos3D, AbstractPos*, ABPComp<1> >;
-	using AxisZ = std::map < NeuronPos3D, AbstractPos*, ABPComp<2> >;
+	using AxisX = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPComp<0> >;
+	using AxisY = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPComp<1> >;
+	using AxisZ = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPComp<2> >;
 	AxisX x_axis;
 	AxisY y_axis;
 	AxisZ z_axis;

@@ -3,9 +3,9 @@
 
 void World3D::insert(Neuron* pneuron)
 {
-	auto ab = std::make_unique<AbstractPos>(pneuron);
-	y_axis[pneuron->get_state()->position] = ab.get();
-	z_axis[pneuron->get_state()->position] = ab.get();
+	auto ab = std::make_shared<AbstractPos>(pneuron);
+	y_axis[pneuron->get_state()->position] = ab;
+	z_axis[pneuron->get_state()->position] = ab;
 	x_axis[pneuron->get_state()->position] = std::move(ab);
 }
 
