@@ -14,15 +14,57 @@ class World3D
 		}
 	};
 
-	template <int axis>
-	struct ABPComp
+	struct ABPCompX
 	{
-		bool operator()(const NeuronPos3D& a, const NeuronPos3D& b) const { return a[axis] < b[axis]; }
+		bool operator()(const NeuronPos3D& a, const NeuronPos3D& b) const
+		{
+			if (!(a[0] < b[0]) && !(a[0] > b[0]))
+			{
+				if (!(a[1] < b[1]) && !(a[1] > b[1]))
+				{
+					return a[2] < b[2];
+				}
+				return a[1] < b[1];
+			}
+			return a[0] < b[0];
+		}
 	};
 
-	using AxisX = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPComp<0> >;
-	using AxisY = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPComp<1> >;
-	using AxisZ = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPComp<2> >;
+	struct ABPCompY
+	{
+		bool operator()(const NeuronPos3D& a, const NeuronPos3D& b) const
+		{
+			if (!(a[1] < b[1]) && !(a[1] > b[1]))
+			{
+				if (!(a[0] < b[0]) && !(a[0] > b[0]))
+				{
+					return a[2] < b[2];
+				}
+				return a[0] < b[0];
+			}
+			return a[1] < b[1];
+		}
+	};
+
+	struct ABPCompZ
+	{
+		bool operator()(const NeuronPos3D& a, const NeuronPos3D& b) const
+		{
+			if (!(a[2] < b[2]) && !(a[2] > b[2]))
+			{
+				if (!(a[0] < b[0]) && !(a[0] > b[0]))
+				{
+					return a[1] < b[1];
+				}
+				return a[0] < b[0];
+			}
+			return a[2] < b[2];
+		}
+	};
+
+	using AxisX = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPCompX >;
+	using AxisY = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPCompY >;
+	using AxisZ = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPCompZ >;
 	AxisX x_axis;
 	AxisY y_axis;
 	AxisZ z_axis;
