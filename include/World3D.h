@@ -6,14 +6,6 @@
 
 class World3D
 {
-	struct AbstractPos
-	{
-		Neuron* point;
-		AbstractPos(Neuron* neuron) : point(neuron)
-		{
-		}
-	};
-
 	struct ABPCompX
 	{
 		bool operator()(const NeuronPos3D& a, const NeuronPos3D& b) const
@@ -62,9 +54,9 @@ class World3D
 		}
 	};
 
-	using AxisX = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPCompX >;
-	using AxisY = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPCompY >;
-	using AxisZ = std::map < NeuronPos3D, std::shared_ptr<AbstractPos>, ABPCompZ >;
+	using AxisX = std::map < NeuronPos3D, Neuron*, ABPCompX >;
+	using AxisY = std::map < NeuronPos3D, Neuron*, ABPCompY >;
+	using AxisZ = std::map < NeuronPos3D, Neuron*, ABPCompZ >;
 	AxisX x_axis;
 	AxisY y_axis;
 	AxisZ z_axis;
@@ -73,9 +65,12 @@ class World3D
 	std::pair<Neuron*, float> compare(Neuron* base, Neuron* a);
 
 	template <class T>
-	std::pair<Neuron*, float> subsearch(typename T::iterator iter, Neuron* base, T& axis);
+	auto find_good_point(Neuron* base, typename T::iterator, T& axis, unsigned int raxis, bool positive) -> typename T::iterator;
+
 	template <class T>
-	std::pair<Neuron*, float> subsearch(typename T::iterator iter, Neuron* base, Neuron* curr_nearest, T& axis, float pdistance);
+	std::pair<Neuron*, float> subsearch(typename T::iterator iter, Neuron* base, T& axis, unsigned int raxis);
+	template <class T>
+	std::pair<Neuron*, float> subsearch(typename T::iterator iter, Neuron* base, Neuron* curr_nearest, T& axis, float pdistance, unsigned int raxis);
 
 public:
 	void insert(Neuron* pneuron);
