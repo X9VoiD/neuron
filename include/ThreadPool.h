@@ -30,7 +30,7 @@ class ThreadPool
 
 public:
 	explicit ThreadPool(Brain*);
-	~ThreadPool();
+	~ThreadPool() = default;
 
 	ThreadPool(const ThreadPool&) = delete;
 	ThreadPool(ThreadPool&&) = delete;

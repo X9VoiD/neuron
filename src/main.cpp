@@ -212,5 +212,4 @@ void nearest_neuron_search(Brain& brain)
 			<< a->get_state()->position[1] << ", "
 			<< a->get_state()->position[2] << "}" << std::endl;
 	}
-	std::cin.get();
 }

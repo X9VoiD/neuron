@@ -27,21 +27,6 @@ ThreadPool::ThreadPool(Brain* pbrain): brain(pbrain)
 	}
 }
 
-ThreadPool::~ThreadPool()
-{
-	try
-	{
-		if (running)
-		{
-			for (auto& child : pool)
-			{
-				child->join();
-			}
-		}
-	}
-	catch (...) {};
-}
-
 void ThreadPool::shutdown() noexcept
 {
 	main_barrier->invalidate();
